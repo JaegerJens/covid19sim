@@ -8,6 +8,7 @@ const parameter = {
     population: 83240000, // Germany population
     r0: 6,  // covid 19 delta variant R0
     vaccinationPrevention: 14, // infection prevention by vaccination
+    incubationPeriod: 10, // 10 days incubation period for Covid 19
 };
 
 
@@ -41,4 +42,25 @@ class Infected {
     }
 }
 
+function calcNewInfections(currentlyInfected: number, vaccinated: number, unvaccinated: number): number {
+    const spreadVaccinated = currentlyInfected * parameter.r0 / parameter.vaccinationPrevention / parameter.incubationPeriod;
+    const spreadUnvaccinated = currentlyInfected * parameter.r0 / parameter.incubationPeriod;
+    return Math.floor(spreadVaccinated + spreadUnvaccinated);
+}
+
 const infected = new Infected(parameter.infected);
+
+const currentState = {
+    time: 0,
+    infected: infected.total,
+    vaccinated: parameter.vaccinated,
+}
+
+while (currentState.time < 365 && currentState.infected < parameter.population && currentState.infected > 0) {
+    const unvaccinated = parameter.population - parameter.vaccinated;
+    const infections = calcNewInfections(currentState.infected, currentState.vaccinated, unvaccinated);
+    console.log(`${currentState.time}: ${currentState.infected} + ${infections}`);
+    const totalInfections = infected.nextDay(infections);
+    currentState.infected = totalInfections;
+    currentState.time++;
+}
